@@ -3,58 +3,65 @@ const Roadmap = require('../../models/Roadmap');
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/AppError');
 const ApiResponse = require('../../utils/ApiResponse');
-const { ROADMAP_STATUS } = require('../../utils/enums');
 
+/**
+ * PUT /api/v1/student/progress
+ * Body: { roadmapId, taskId, isCompleted, notes }
+ */
 module.exports = catchAsync(async (req, res, next) => {
-  const { roadmapId, taskId, isCompleted } = req.body;
+  const { roadmapId, taskId, isCompleted, notes } = req.body;
 
   if (!roadmapId || !taskId) {
-     return next(new AppError('roadmapId and taskId are required', 400));
+    return next(new AppError('roadmapId and taskId are required', 400));
   }
 
-  const roadmap = await Roadmap.findOneAndUpdate(
-    { _id: roadmapId, studentId: req.user._id, 'tasks._id': taskId },
-    { $set: { 'tasks.$.isCompleted': isCompleted } },
-    { new: true }
-  );
+  // 1. Find the roadmap
+  const roadmap = await Roadmap.findOne({ 
+    _id: roadmapId, 
+    studentId: req.user._id 
+  });
 
   if (!roadmap) {
-    return next(new AppError('Roadmap or task not found', 404));
+    return next(new AppError('Roadmap not found', 404));
   }
 
-  const completedCount = roadmap.tasks.filter(t => t.isCompleted).length;
-  const percentage = roadmap.tasks.length === 0 ? 0 : Math.round((completedCount / roadmap.tasks.length) * 100);
-
-  if (percentage === 100) {
-     await Roadmap.findByIdAndUpdate(roadmapId, { status: ROADMAP_STATUS.COMPLETED, completionDate: Date.now() });
-  } else if (roadmap.status === ROADMAP_STATUS.PENDING) {
-     await Roadmap.findByIdAndUpdate(roadmapId, { status: ROADMAP_STATUS.IN_PROGRESS });
+  // 2. Update task in Roadmap collection
+  const taskIndex = roadmap.tasks.findIndex(t => t._id.toString() === taskId);
+  if (taskIndex === -1) {
+    return next(new AppError('Task not found in this roadmap', 404));
   }
 
-  let progress = await Progress.findOne({ studentId: req.user._id, roadmapId });
-  if (progress) {
-      if (isCompleted) {
-         await Progress.findByIdAndUpdate(progress._id, { 
-             $addToSet: { completedTasks: taskId },
-             completionPercentage: percentage,
-             lastUpdated: Date.now()
-         });
-      } else {
-         await Progress.findByIdAndUpdate(progress._id, { 
-             $pull: { completedTasks: taskId },
-             completionPercentage: percentage,
-             lastUpdated: Date.now()
-         });
-      }
-      progress = await Progress.findById(progress._id);
+  roadmap.tasks[taskIndex].isCompleted = isCompleted;
+
+  // 3. Sync with Progress collection
+  if (isCompleted) {
+    // Ensure Progress doc exists
+    await Progress.findOneAndUpdate(
+      { studentId: req.user._id, roadmapId, taskId },
+      { notes, completedAt: Date.now() },
+      { upsert: true, new: true }
+    );
   } else {
-      progress = await Progress.create({
-         studentId: req.user._id,
-         roadmapId,
-         completedTasks: isCompleted ? [taskId] : [],
-         completionPercentage: percentage
-      });
+    // Remove Progress doc
+    await Progress.deleteOne({ studentId: req.user._id, roadmapId, taskId });
   }
 
-  res.status(200).json(new ApiResponse(200, { roadmap, progress }, 'Progress updated'));
+  // 4. Update completion percentage and metadata
+  const completedCount = roadmap.tasks.filter(t => t.isCompleted).length;
+  const percentage = Math.round((completedCount / roadmap.tasks.length) * 100);
+  
+  roadmap.completionPercentage = percentage;
+  
+  if (percentage === 100) {
+    roadmap.status = 'completed';
+    roadmap.completionDate = Date.now();
+  } else if (percentage > 0) {
+    roadmap.status = 'in-progress';
+  } else {
+    roadmap.status = 'pending';
+  }
+
+  await roadmap.save();
+
+  res.status(200).json(new ApiResponse(200, { roadmap, percentage }, 'Progress updated successfully'));
 });

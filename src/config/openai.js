@@ -4,7 +4,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const isGemini = process.env.AI_PROVIDER === 'gemini';
 
 if (!process.env.OPENAI_API_KEY && !isGemini) {
-  console.warn('Warning: OPENAI_API_KEY is not set in environment variables');
+  console.warn('Warning: AI_PROVIDER is openai but OPENAI_API_KEY is not set');
 }
 
 let aiClient;

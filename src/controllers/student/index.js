@@ -7,5 +7,6 @@ module.exports = {
   updateProgressController: require('./updateProgressController'),
   getProgressController: require('./getProgressController'),
   getScoreController: require('./getScoreController'),
-  getRecommendationsController: require('./getRecommendationsController')
+  getRecommendationsController: require('./getRecommendationsController'),
+  analyzeResumeController: require('./analyzeResumeController')
 };

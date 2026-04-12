@@ -1,35 +1,36 @@
 const mongoose = require('mongoose');
 
+/**
+ * Progress Collection
+ * Tracks individual task completion events.
+ */
 const progressSchema = new mongoose.Schema({
   studentId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 
-    required: [true, 'Student ID is required to track progress'] 
+    required: [true, 'Student ID is required'] 
   },
   roadmapId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Roadmap', 
-    required: [true, 'Roadmap ID is required to track progress'] 
+    required: [true, 'Roadmap ID is required'] 
   },
-  completedTasks: [{ 
-    type: String,
-    trim: true,
-    maxlength: [150, 'Task ID/Title cannot exceed 150 characters']
-  }],
-  completionPercentage: { 
-    type: Number, 
-    min: [0, 'Completion percentage cannot be less than 0'], 
-    max: [100, 'Completion percentage cannot exceed 100'], 
-    default: 0 
+  taskId: { 
+    type: String, // String ID of the task from Roadmap.tasks
+    required: [true, 'Task ID is required'] 
   },
-  lastUpdated: { 
+  completedAt: { 
     type: Date, 
     default: Date.now 
+  },
+  notes: {
+    type: String,
+    trim: true,
+    maxlength: [500, 'Notes cannot exceed 500 characters']
   }
 }, { timestamps: true });
 
-// Indexes
-progressSchema.index({ studentId: 1, roadmapId: 1 }, { unique: true });
-progressSchema.index({ completionPercentage: -1 });
+// Index for fast lookup of a student's progress on a specific roadmap
+progressSchema.index({ studentId: 1, roadmapId: 1, taskId: 1 }, { unique: true });
 
 module.exports = mongoose.model('Progress', progressSchema);

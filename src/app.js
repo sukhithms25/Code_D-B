@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const routes = require('./routes');
 const AppError = require('./utils/AppError');
+require('./models'); // Register all Mongoose models globally
 
 // ─── Middleware imports (all from dedicated modules) ─────────────────────────
 const helmetMiddleware      = require('./middleware/helmetMiddleware');

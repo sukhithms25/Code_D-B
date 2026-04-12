@@ -34,8 +34,8 @@ const roadmapSchema = new mongoose.Schema({
   status: { 
     type: String, 
     enum: {
-      values: ['pending', 'in-progress', 'completed'],
-      message: 'Status must be pending, in-progress, or completed'
+      values: ['pending', 'in-progress', 'completed', 'archived'],
+      message: 'Status must be pending, in-progress, completed, or archived'
     }, 
     default: 'pending' 
   },

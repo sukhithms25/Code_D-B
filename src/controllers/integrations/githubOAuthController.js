@@ -1,13 +1,15 @@
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
+const User = require("../../models/User");
 
 const githubConnect = async (req, res) => {
-  const userId = req.query.userId;
+  // Use query param OR authenticated user ID
+  const userId = req.query.userId || req.user?.id || req.user?._id;
 
   if (!userId) {
-    return res.status(400).json({
+    return res.status(401).json({
       success: false,
-      message: "userId required"
+      message: "Authentication required to connect GitHub"
     });
   }
 
@@ -47,22 +49,59 @@ const githubCallback = async (req, res) => {
     );
 
     const githubToken = tokenRes.data.access_token;
+    
+    if (!githubToken) {
+       return res.status(400).json({ success: false, message: "Invalid code or token exchange failed" });
+    }
 
-    // Save token in DB for userId here
-    const Integration = require('../../models/Integration');
-    await Integration.findOneAndUpdate(
-      { studentId: userId },
-      { githubToken: githubToken, githubSyncedAt: Date.now(), lastSyncedAt: Date.now() },
-      { new: true, upsert: true }
+    const profileRes = await axios.get(
+      "https://api.github.com/user",
+      {
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          Accept: "application/json"
+        }
+      }
     );
+
+    const reposRes = await axios.get(
+      "https://api.github.com/user/repos?per_page=100",
+      {
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          Accept: "application/json"
+        }
+      }
+    );
+
+    const profile = profileRes.data;
+    const repos = reposRes.data;
+
+    const githubData = {
+      githubConnected: true,
+      githubUsername: profile.login,
+      githubProfileUrl: profile.html_url,
+      githubAvatar: profile.avatar_url,
+      followers: profile.followers,
+      following: profile.following,
+      publicRepos: profile.public_repos,
+      repoCount: repos.length,
+      lastGithubSync: new Date()
+    };
+
+    await User.findByIdAndUpdate(userId, {
+      ...githubData
+    });
 
     return res.json({
       success: true,
-      userId,
-      githubConnected: true
+      githubConnected: true,
+      githubUsername: profile.login,
+      repoCount: repos.length
     });
 
   } catch (err) {
+    console.error("GitHub OAuth Error:", err.message);
     return res.status(500).json({
       success: false,
       message: "OAuth failed"

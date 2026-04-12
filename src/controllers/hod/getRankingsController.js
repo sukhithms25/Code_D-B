@@ -8,12 +8,14 @@ const computeScore = (user) => {
   const codingActivity  = Math.min(100, (user.repoCount || 0) * 2);
   const projects        = Math.min(100, (user.resumeAnalysis?.projectCount || 0) * 15);
   const problemSolving  = Math.min(100, (user.leetcodeSolved || 0) * 2);
+
   let consistency = 0;
   if (user.lastGithubSync) {
     const days = Math.floor((Date.now() - new Date(user.lastGithubSync)) / 86400000);
     if (days <= 7) consistency = 100;
     else if (days <= 30) consistency = 50;
   }
+
   return scoringAlgorithmService.calculateTotalScore({
     codingActivity, projects, problemSolving, consistency
   });
@@ -21,13 +23,24 @@ const computeScore = (user) => {
 
 module.exports = catchAsync(async (req, res, next) => {
   const limit = Number(req.query.limit) || 10;
+
   const students = await User.find({ role: 'student' })
     .select('firstName lastName email branch year repoCount leetcodeSolved resumeAnalysis lastGithubSync');
 
+  // Compute and sort
   const ranked = students
-    .map(s => ({ _id: s._id, name: `${s.firstName} ${s.lastName}`, email: s.email, branch: s.branch, year: s.year, totalScore: computeScore(s), grade: gradeCalculatorService.calculateGrade(computeScore(s)) }))
+    .map(s => ({
+      _id:           s._id,
+      name:          `${s.firstName} ${s.lastName}`,
+      email:         s.email,
+      branch:        s.branch,
+      year:          s.year,
+      totalScore:    computeScore(s),
+      grade:         gradeCalculatorService.calculateGrade(computeScore(s))
+    }))
     .sort((a, b) => b.totalScore - a.totalScore)
+    .map((s, i) => ({ rank: i + 1, ...s }))
     .slice(0, limit);
 
-  res.status(200).json(new ApiResponse(200, ranked, 'Top performers retrieved successfully'));
+  res.status(200).json(new ApiResponse(200, ranked, 'Rankings retrieved successfully'));
 });

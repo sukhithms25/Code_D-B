@@ -1,14 +1,24 @@
-const StudentProfile = require('../../models/StudentProfile');
-const catchAsync = require('../../utils/catchAsync');
-const AppError = require('../../utils/AppError');
-const ApiResponse = require('../../utils/ApiResponse');
+const User = require("../../models/User");
 
-module.exports = catchAsync(async (req, res, next) => {
-  const profile = await StudentProfile.findOne({ userId: req.user._id }).populate('userId', 'firstName lastName email role');
-  
-  if (!profile) {
-    return next(new AppError('Profile not found', 404));
+const getProfileController = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: user
+    });
+
+  } catch (error) {
+    next(error);
   }
+};
 
-  res.status(200).json(new ApiResponse(200, profile, 'Profile retrieved successfully'));
-});
+module.exports = getProfileController;

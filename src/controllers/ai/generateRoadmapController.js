@@ -10,6 +10,10 @@ module.exports = catchAsync(async (req, res, next) => {
     return next(new AppError('Please provide interests array', 400));
   }
 
-  const roadmap = await roadmapGeneratorService.generateRoadmap(interests, skillLevel || 'beginner', weeks || 4);
-  res.status(200).json(new ApiResponse(200, roadmap, 'Roadmap generated successfully'));
+  try {
+    const roadmap = await roadmapGeneratorService.generateRoadmap(interests, skillLevel || 'beginner', weeks || 4);
+    res.status(200).json(new ApiResponse(200, roadmap, 'Roadmap generated successfully'));
+  } catch (error) {
+    return next(new AppError('AI Roadmap Designer is temporarily unavailable.', 503));
+  }
 });

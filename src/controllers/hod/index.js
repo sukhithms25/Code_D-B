@@ -1,7 +1,9 @@
 module.exports = {
-  getStudentsController: require('./getStudentsController'),
+  getStudentsController:     require('./getStudentsController'),
   getStudentDetailController: require('./getStudentDetailController'),
-  getAnalyticsController: require('./getAnalyticsController'),
+  getAnalyticsController:    require('./getAnalyticsController'),
   getTopPerformersController: require('./getTopPerformersController'),
-  getLowPerformersController: require('./getLowPerformersController')
+  getLowPerformersController: require('./getLowPerformersController'),
+  getRankingsController:     require('./getRankingsController'),
+  getAlertsController:       require('./getAlertsController'),
 };

@@ -1,11 +1,11 @@
 const Joi = require('joi');
 
 exports.generateRoadmap = Joi.object({
+  goal: Joi.string().required().max(100).messages({
+    'any.required': 'Career goal is required'
+  }),
   skillLevel: Joi.string().valid('beginner', 'intermediate', 'advanced').default('beginner'),
-  weeks: Joi.number().integer().min(1).max(12).default(4).messages({
-    'number.min': 'Roadmap must be at least 1 week',
-    'number.max': 'Roadmap cannot exceed 12 weeks'
-  })
+  weeks: Joi.number().integer().min(1).max(12).default(4)
 });
 
 exports.updateProgress = Joi.object({
