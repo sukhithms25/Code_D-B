@@ -1,5 +1,6 @@
 # Environments
 .env
+.env.example
 
 # Node
 node_modules/
@@ -14,3 +15,6 @@ uploads/
 
 # Testing
 coverage/
+
+api_docs/
+api.md

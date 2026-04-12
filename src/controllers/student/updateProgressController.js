@@ -3,6 +3,7 @@ const Roadmap = require('../../models/Roadmap');
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/AppError');
 const ApiResponse = require('../../utils/ApiResponse');
+const { ROADMAP_STATUS } = require('../../utils/enums');
 
 module.exports = catchAsync(async (req, res, next) => {
   const { roadmapId, taskId, isCompleted } = req.body;
@@ -25,9 +26,9 @@ module.exports = catchAsync(async (req, res, next) => {
   const percentage = roadmap.tasks.length === 0 ? 0 : Math.round((completedCount / roadmap.tasks.length) * 100);
 
   if (percentage === 100) {
-     await Roadmap.findByIdAndUpdate(roadmapId, { status: 'completed', completionDate: Date.now() });
-  } else if (roadmap.status === 'pending') {
-     await Roadmap.findByIdAndUpdate(roadmapId, { status: 'in-progress' });
+     await Roadmap.findByIdAndUpdate(roadmapId, { status: ROADMAP_STATUS.COMPLETED, completionDate: Date.now() });
+  } else if (roadmap.status === ROADMAP_STATUS.PENDING) {
+     await Roadmap.findByIdAndUpdate(roadmapId, { status: ROADMAP_STATUS.IN_PROGRESS });
   }
 
   let progress = await Progress.findOne({ studentId: req.user._id, roadmapId });

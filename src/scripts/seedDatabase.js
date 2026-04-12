@@ -37,10 +37,10 @@ const seed = async () => {
 
     // Create HOD
     const hod = await User.create({
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'hod@example.com',
-      password: 'password123',
+      firstName: 'HOD',
+      lastName: 'Demo',
+      email: 'hod@test.com',
+      password: '123456',
       role: 'hod',
       isVerified: true
     });

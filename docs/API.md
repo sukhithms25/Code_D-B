@@ -1,5 +1,45 @@
-# API Reference Guide
-Base URL: `http://localhost:5000/api/v1`
+# API Reference Guide & Master Route List
+
+Base URL: `http://localhost:5000`
+
+## 🔗 API Master List
+
+| METHOD | ROUTE | AUTH | ROLE | PURPOSE |
+|--------|-------|------|------|---------|
+| GET | `/health` | No | Public | Basic health and uptime check |
+| POST | `/api/v1/auth/register` | No | Public | Register a new user |
+| POST | `/api/v1/auth/login` | No | Public | Login user and receive tokens |
+| POST | `/api/v1/auth/refresh` | No | Public | Retrieve new tokens using refresh |
+| POST | `/api/v1/auth/logout` | No | Public | Clear cookies/tokens |
+| POST | `/api/v1/auth/forgot-password` | No | Public | Request a password reset URL |
+| POST | `/api/v1/auth/reset-password/:token` | No | Public | Set new password with token |
+| GET | `/api/v1/student/profile` | Yes | student | View student profile & stats |
+| PUT | `/api/v1/student/profile` | Yes | student | Update profile and skills |
+| POST | `/api/v1/student/resume` | Yes | student | Upload PDF resume |
+| GET | `/api/v1/student/roadmap` | Yes | student | View current roadmap progress |
+| POST | `/api/v1/student/roadmap/generate` | Yes | student | Create tiered AI roadmap |
+| GET | `/api/v1/student/progress` | Yes | student | Fetch progress tracking metrics |
+| PUT | `/api/v1/student/progress` | Yes | student | Check off roadmap tasks |
+| GET | `/api/v1/student/score` | Yes | student | Fetch total score calculation |
+| GET | `/api/v1/student/recommendations` | Yes | student | Get personalized recommendations |
+| GET | `/api/v1/hod/students` | Yes | hod, admin | List all students in system |
+| GET | `/api/v1/hod/students/:id` | Yes | hod, admin | View specific student stats |
+| GET | `/api/v1/hod/analytics` | Yes | hod, admin | Dashboard aggregate stats |
+| GET | `/api/v1/hod/top-performers` | Yes | hod, admin | Ranked list of top students |
+| GET | `/api/v1/hod/low-performers` | Yes | hod, admin | Flagged underperformers |
+| POST | `/api/v1/ai/chat` | Yes | student | Send history to AI chatbot |
+| POST | `/api/v1/ai/generate-roadmap` | Yes | student | Used by generator service |
+| POST | `/api/v1/ai/analyze-resume` | Yes | student | Deep feedback on resume |
+| GET | `/api/v1/ai/recommend` | Yes | student | AI specific recommendations |
+| GET | `/api/v1/integrations/status` | Yes | student | View mapping status |
+| POST | `/api/v1/integrations/github/sync` | Yes | student | Trigger GitHub metadata sync |
+| POST | `/api/v1/integrations/leetcode/sync` | Yes | student | Trigger LeetCode data sync |
+| GET | `/api/v1/integrations/youtube/search` | Yes | student | Search YouTube tutorials |
+| GET | `/api/v1/notifications` | Yes | student, hod | View unread system notifications |
+| PUT | `/api/v1/notifications/mark-all` | Yes | student, hod | Fast mark all as read |
+| PUT | `/api/v1/notifications/:id` | Yes | student, hod | Mark specific notification read |
+
+---
 
 ## Response Formats
 All requests follow this standard signature.
@@ -25,7 +65,7 @@ All requests follow this standard signature.
 
 ---
 
-## 1. Authentication
+## 1. Authentication Details
 ### `POST /auth/register`
 Creates an account (auto-provisions `StudentProfile` or `HODProfile`).
 **Body:**

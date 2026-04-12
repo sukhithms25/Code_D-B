@@ -1,21 +1,22 @@
-const authMiddleware = require('./authMiddleware');
-const roleMiddleware = require('./roleMiddleware');
+const { protect } = require('./authMiddleware');
+const authorizeRole = require('./roleMiddleware');
 const errorMiddleware = require('./errorMiddleware');
 const validationMiddleware = require('./validationMiddleware');
-const rateLimitMiddleware = require('./rateLimitMiddleware');
+const { authLimiter, apiLimiter } = require('./rateLimitMiddleware');
 const corsMiddleware = require('./corsMiddleware');
 const helmetMiddleware = require('./helmetMiddleware');
 const requestLoggerMiddleware = require('./requestLoggerMiddleware');
-const fileUploadMiddleware = require('./fileUploadMiddleware');
+const { uploadResume } = require('./fileUploadMiddleware');
 
 module.exports = {
-  authMiddleware,
-  roleMiddleware,
+  protect,
+  authorizeRole,
   errorMiddleware,
   validationMiddleware,
-  rateLimitMiddleware,
+  authLimiter,
+  apiLimiter,
   corsMiddleware,
   helmetMiddleware,
   requestLoggerMiddleware,
-  fileUploadMiddleware,
+  uploadResume,
 };

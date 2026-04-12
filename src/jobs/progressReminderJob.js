@@ -1,30 +1,16 @@
-const Roadmap = require('../models/Roadmap');
-const notificationService = require('../services/notifications/notificationService');
+const { runAllReminders } = require('../services/notifications/reminderService');
 const logger = require('../utils/logger');
 
+/**
+ * Daily progress reminder cron job — runs at 9 AM every day.
+ * Delegates all logic to reminderService to keep this file as
+ * a thin scheduled-trigger shell only.
+ */
 const progressReminderJob = async () => {
   try {
-    const activeRoadmaps = await Roadmap.find({ status: 'in-progress' }).populate('studentId');
-    
-    let reminderCount = 0;
-    for (const roadmap of activeRoadmaps) {
-      if (!roadmap.studentId) continue;
-      
-      const uncompletedTasks = roadmap.tasks.filter(t => !t.isCompleted);
-      if (uncompletedTasks.length > 0) {
-        await notificationService.createNotification({
-          userId: roadmap.studentId._id,
-          title: 'Daily Progress Reminder',
-          message: `You have ${uncompletedTasks.length} pending tasks in your current roadmap. Keep going!`,
-          type: 'reminder'
-        });
-        reminderCount++;
-      }
-    }
-    
-    logger.info(`ProgressReminderJob: Sent ${reminderCount} daily reminders.`);
+    await runAllReminders();
   } catch (error) {
-    logger.error(`ProgressReminderJob Error: ${error.message}`);
+    logger.error(`progressReminderJob: Unhandled error: ${error.message}`);
   }
 };
 

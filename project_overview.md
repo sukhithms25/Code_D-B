@@ -1,62 +1,66 @@
-# Code_D-B: AI-Based Student Performance Analysis System
-## Comprehensive Project Overview & Status Report
+# Code_D-B: Comprehensive Project Overview
 
-### 📖 1. Project Description
-Code_D-B is a cutting-edge, AI-driven educational technology platform designed to bridge the gap between student learning and department-level academic monitoring. The system serves two primary demographics: **Students** and **Heads of Departments (HODs)**. 
+## 📖 1. Vision & Architecture
 
-For students, the platform acts as a personalized learning assistant. It ingests their resumes, analyzes their skills using OpenAI, generates dynamic, multi-week learning roadmaps, synchronizes their coding activity from platforms like GitHub and LeetCode, and recommends targeted YouTube resources.
-For HODs, the platform serves as an administrative surveillance dashboard. It aggregates the performance data of all students, calculates a weighted score (30% Coding, 30% Projects, 20% Problem Solving, 20% Consistency), assigns academic grades, and identifies top performers vs. students needing intervention.
+**Code_D-B** is designed to modernize academic monitoring and personal learning. By leveraging AI (OpenAI API) and continuous deployment streams (GitHub, LeetCode), the platform automates the creation of custom learning paths and tracks student engagement in real-time, drastically reducing manual grading and mentoring overhead.
 
-### 🛠️ 2. Technology Stack
-The project is built on a modern, robust, and asynchronous JavaScript backend ecosystem:
-- **Core Runtime**: Node.js
-- **Web Framework**: Express.js 
-- **Database**: MongoDB (NoSQL) operated via Mongoose ODM
-- **Authentication**: JWT (JSON Web Tokens) with deep Role-Based Access Control (RBAC) and bcryptjs hashing
-- **Data Validation**: Joi (Strict schema enforcement)
-- **AI Engine**: OpenAI API (`gpt-4o-mini` mapped for Chatbots, Resume Parsing, and Curriculum Generation)
-- **Third-Party Integrations**: YouTube Data API v3, GitHub API, LeetCode
-- **Background Workers**: `node-cron` (Automated cleanup, email reporting, and reminders)
-- **Testing Architecture**: `Jest` testing framework, `Supertest` for HTTP assertions, `mongodb-memory-server` for volatile isolated test databases.
-
-### ✨ 3. Core Features
-- **Dynamic AI Curriculum Generation**: Creates 4-12 week custom roadmaps based on a student's detected skill level.
-- **Smart Resume Parsing**: Uses LLMs to extract core competencies directly from uploaded PDF resumes.
-- **Weighted Grading Algorithm**: A custom math engine that tracks coding activity, project commits, and consistency to assign a live Grade (A+, B, C, F, etc.).
-- **Automated External Syncing**: Native webhook-ready connectors to continually fetch GitHub commit histories and LeetCode problem-solving streaks.
-- **HOD Analytics Dashboard**: Aggregates network-wide statistics, delivering paginated lists of low-performers and top-tier students.
-- **Automated Cron Jobs**: Background workers that fire daily and weekly to send emails, sweep 90-day stale data, and trigger n8n webhooks.
-- **Interceptor Validation**: A highly secure middleware gateway that checks environment variables on boot and strips malicious JSON properties before they hit the database.
+### Layered Architectural Pattern
+The backend adheres strictly to the **Controller-Service-Repository** (Service-oriented) architectural pattern:
+- **Routes Layer**: Modularized scalable endpoint configurations separated by context (`src/routes`).
+- **Middleware Layer**: JWT verification, Joi payload validation, file multer setups, and error interception.
+- **Controller Layer**: Decoupled HTTP handlers, seamlessly wrapped with a `catchAsync` mechanism.
+- **Service Layer**: Pure business logic isolation (e.g., Calling OpenAI, calculating performance grades, triggering syncs).
+- **Model Layer**: Flexible Mongoose schemas equipped with custom instance methods and pre-hook lifecycle triggers.
 
 ---
 
-### 🟢 4. Completed Tasks (100% Backend Architecture Finished)
-The backend REST API is structurally complete, modularized, and production-ready.
-- [x] **Project Initialization**: NPM setup, Express scaffolding, and `.env` parameter configurations.
-- [x] **Database Modeling**: Constructed all 9 Mongoose schemas (User, StudentProfile, HODProfile, Roadmap, Progress, Evaluation, Resource, Notification, Integration).
-- [x] **Service Layer**: Decoupled business logic into 16+ stateless services (Token logic, AI Prompting, GitHub syncing, Scoring math).
-- [x] **Controllers Layer**: Mapped 26+ specific endpoint controllers wrapping the services in `catchAsync` blocks.
-- [x] **Security & Validation Layer**: Configured `Joi` schemas, JWT `authMiddleware` (with `restrictTo` roles), and strict Startup Environment Validations.
-- [x] **Routing**: Built modular Express routers for `/auth`, `/student`, `/hod`, `/ai`, `/integrations`, etc.
-- [x] **Cron Scheduling**: Written and registered automated daily/weekly background tasks.
-- [x] **Utility Scripts**: Built interactive CLI tools (`createHODAccount`, `seedDatabase`) for fast administrator onboarding.
-- [x] **Unit & Integration Testing**: Established a full testing suite executing within an isolated volatile Mongo memory partition.
+## 🗂️ 2. Core Modules & Features Completely Added
+
+1. **Authentication & Authorization (`/auth`)**:
+   - Secure JSON Web Token authentication flows (Login, Register, Refresh).
+   - Comprehensive Role-Based Access Control (RBAC) securely separating `Student` and `HOD` personas.
+2. **AI & Intelligence (`/ai`)**:
+   - `generateRoadmapController`: Parses user skills and dynamically queries OpenAI for structured, multi-week JSON learning roadmaps.
+   - `analyzeResumeController`: Extracts keywords, programming languages, and soft skills from student PDF uploads.
+3. **Data Synchronizations (`/integrations`)**:
+   - On-demand syncing with **GitHub** (commit history, pull requests) and **LeetCode** (problem-solving streaks).
+4. **Scoring & Evaluation Algorithm (`/student`)**:
+   - Complex math engine evaluating a student's Code Activity (30%), Projects (30%), Problem Solving (20%), and Consistency (20%).
+5. **HOD Administrative Tools (`/hod`)**:
+   - Feature-rich data aggregation for HODs to monitor departmental health, rank students, and quickly identify students who may require academic intervention.
+6. **Notifications System (`/notifications`)**:
+   - Complete CRUD logic for an in-app alert/read-receipts system.
 
 ---
 
-### 🔴 5. Incomplete Tasks & Next Steps (What's Left)
-The backend codebase is complete, but the project *as a whole* requires manual configuration and the creation of its front-facing counterpart.
+## 🟢 3. Current Project Status (Phase 1: Backend Complete)
 
-#### **Backend Manual Configuration (Required to Run)**
-- [ ] **Provision a Database**: Create a cluster on MongoDB Atlas (or locally) and place the URI in `.env`.
-- [ ] **Generate API Keys**: Obtain a real `OPENAI_API_KEY` and `YOUTUBE_API_KEY` and place them in `.env`.
-- [ ] **Configure SMTP Emails**: Setup Gmail App Passwords for Nodemailer to functionally send weekly progress reports.
-- [ ] **OAuth Registrations**: Register an OAuth Application inside the GitHub Developer console to allow actual user tracking.
-- [ ] **Install Packages**: Run `npm install` locally on your machine to map the `package.json` configurations into an active `node_modules` folder.
+As of the current iteration, the RESTful API and Backend system is **completely architected, tested, and structurally sound**.
 
-#### **Frontend Development (Phase 2 of overall project)**
-- [ ] **Initialize Frontend**: Spin up a React, Next.js, or Vue frontend application.
-- [ ] **Build Auth Views**: Create the Login, Registration, and layout wrappers mapping to the backend `/api/v1/auth` endpoints.
-- [ ] **Build Student Dashboard**: Create the UI elements to display the AI Roadmaps, Progress bars, Resume Upload forms, and Chatbot window.
-- [ ] **Build HOD Dashboard**: Design data tables, analytical charts (e.g., using Chart.js), and leaderboard statistics.
-- [ ] **Connect API Client**: Implement `Axios` or `fetch` interceptors on the frontend to automatically attach the `Bearer Token` to all outgoing requests.
+**Successfully Built Layers**:
+- [x] **Database Models**: 9 full Mongoose schemas established with precise relational mapping.
+- [x] **Service Tier**: Deep integrations and automated logic securely handled off the main thread.
+- [x] **Routing Infrastructure**: Complete RESTful controller maps.
+- [x] **Security & Validation**: Strict JSON payload constraints using `Joi` and `Helmet` defenses.
+- [x] **Cron Automation**: Schedulers registered for routine database cleanup and integrations.
+- [x] **Testing Environment**: Robust mock testing suite running inside an isolated in-memory DB slice.
+
+All Node modules are documented inside `package.json` and the `.env.example` structure precisely matches the variables required for boot-up.
+
+---
+
+## 🔴 4. Next Development Steps (Phase 2)
+
+While the core API logic is rock solid, the platform cannot be properly utilized until the visual front-facing applications are constructed and provider configurations are completed:
+
+### Step 4.1: Manual Infrastructure Setup
+- **Database Provisioning**: Deploy a Mongo cluster via MongoDB Atlas and populate the `.env` `MONGODB_URI` string.
+- **Provider Keys Setup**: Register on OpenAI, Google Cloud Console (YouTube Data API), and Gmail (App Passwords for SMTP nodemailer).
+- **GitHub & LeetCode Webhooks**: Configure OAuth applications in their respective developer settings to issue valid secure tokens for testing.
+
+### Step 4.2: Frontend Application Construction
+The focus should now shift entirely toward designing and coding the Client UI:
+1. Initialize a **React**, **Next.js**, or **Vue** Single Page Application.
+2. Build the **Student User Interface**: Integrate the interactive AI Roadmap timeline, asynchronous file uploading (FormData) for PDF resumes, and progress percentage bars.
+3. Build the **HOD Dashboard UI**: Implement powerful charting abstractions (e.g., Recharts, Chart.js) to visually represent the aggregate metrics flowing from `/api/v1/hod/*`.
+4. Setup **State Management Context**: Securely store JWT tokens inside HttpOnly cookies or Redux/Zustand providers.

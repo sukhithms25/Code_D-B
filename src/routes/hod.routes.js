@@ -1,11 +1,12 @@
 const express = require('express');
-const { protect, restrictTo } = require('../middleware/authMiddleware');
+const { protect } = require('../middleware/authMiddleware');
+const authorizeRole = require('../middleware/roleMiddleware');
 const hodControllers = require('../controllers/hod');
 
 const router = express.Router();
 
 router.use(protect);
-router.use(restrictTo('hod', 'admin'));
+router.use(authorizeRole('hod', 'admin'));
 
 router.get('/students', hodControllers.getStudentsController);
 router.get('/students/:id', hodControllers.getStudentDetailController);

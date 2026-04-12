@@ -1,20 +1,20 @@
 const express = require('express');
-const multer = require('multer');
-const { protect, restrictTo } = require('../middleware/authMiddleware');
+const { protect } = require('../middleware/authMiddleware');
+const authorizeRole = require('../middleware/roleMiddleware');
+const { uploadResume } = require('../middleware/fileUploadMiddleware');
 const validateRequest = require('../validators/validateRequest');
 const studentSchema = require('../validators/schemas/studentSchema');
 const roadmapSchema = require('../validators/schemas/roadmapSchema');
 const studentControllers = require('../controllers/student');
 
-const upload = multer({ dest: 'uploads/temp/' });
 const router = express.Router();
 
 router.use(protect);
-router.use(restrictTo('student'));
+router.use(authorizeRole('student'));
 
 router.get('/profile', studentControllers.getProfileController);
 router.put('/profile', validateRequest(studentSchema.updateProfile), studentControllers.updateProfileController);
-router.post('/resume', upload.single('resume'), studentControllers.uploadResumeController);
+router.post('/resume', uploadResume.single('resume'), studentControllers.uploadResumeController);
 
 router.get('/roadmap', studentControllers.getRoadmapController);
 router.post('/roadmap/generate', validateRequest(roadmapSchema.generateRoadmap), studentControllers.generateRoadmapController);

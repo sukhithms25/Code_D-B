@@ -50,7 +50,6 @@ const evaluationSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Indexes
-evaluationSchema.index({ studentId: 1 });
 evaluationSchema.index({ totalScore: -1 }); // Useful for top performers leaderboard
 
 module.exports = mongoose.model('Evaluation', evaluationSchema);

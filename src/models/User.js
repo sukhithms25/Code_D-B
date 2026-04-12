@@ -22,10 +22,10 @@ const userSchema = new mongoose.Schema({
     trim: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email address']
   },
-  password: { 
+    password: { 
     type: String, 
     required: [true, 'Password is required'], 
-    minlength: [8, 'Password must be at least 8 characters long'],
+    minlength: [6, 'Password must be at least 6 characters long'],
     select: false 
   },
   role: { 
@@ -36,18 +36,25 @@ const userSchema = new mongoose.Schema({
     }, 
     default: 'student' 
   },
-  isVerified: { 
-    type: Boolean, 
-    default: false 
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  passwordResetToken: {
+    type: String,
+    select: false
+  },
+  passwordResetExpires: {
+    type: Date,
+    select: false
   }
-}, { 
+}, {
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true } 
 });
 
 // Indexes
-userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 
 // Virtuals

@@ -37,7 +37,6 @@ const studentProfileSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Indexes
-studentProfileSchema.index({ userId: 1 });
 studentProfileSchema.index({ skills: 1 });
 
 module.exports = mongoose.model('StudentProfile', studentProfileSchema);

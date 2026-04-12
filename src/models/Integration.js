@@ -25,7 +25,6 @@ const integrationSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Indexes
-integrationSchema.index({ studentId: 1 });
 integrationSchema.index({ leetcodeUsername: 1 });
 
 module.exports = mongoose.model('Integration', integrationSchema);

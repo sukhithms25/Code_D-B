@@ -15,8 +15,8 @@ const envSchema = Joi.object({
   JWT_REFRESH_SECRET: Joi.string().min(32).required().description('Refresh token secret'),
   JWT_REFRESH_EXPIRE: Joi.string().default('7d'),
 
-  // OpenAI - REQUIRED
-  OPENAI_API_KEY: Joi.string().required().description('OpenAI API key'),
+  // OpenAI - REQUIRED if not using Gemini
+  OPENAI_API_KEY: Joi.string().optional().description('OpenAI API key'),
   OPENAI_MODEL: Joi.string().default('gpt-4o-mini'),
   OPENAI_MAX_TOKENS: Joi.number().default(2000),
 
@@ -24,9 +24,6 @@ const envSchema = Joi.object({
   GITHUB_CLIENT_ID: Joi.string().optional().allow(''),
   GITHUB_CLIENT_SECRET: Joi.string().optional().allow(''),
   GITHUB_CALLBACK_URL: Joi.string().uri().optional().allow(''),
-
-  // YouTube - REQUIRED for recommendations
-  YOUTUBE_API_KEY: Joi.string().required().description('YouTube Data API key'),
 
   // Email (for notifications)
   EMAIL_HOST: Joi.string().default('smtp.gmail.com'),

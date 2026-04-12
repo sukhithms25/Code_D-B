@@ -24,7 +24,6 @@ const hodProfileSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Indexes
-hodProfileSchema.index({ userId: 1 });
 hodProfileSchema.index({ department: 1 });
 
 module.exports = mongoose.model('HODProfile', hodProfileSchema);

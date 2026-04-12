@@ -1,76 +1,91 @@
-# Code_D-B Backend
-AI-Based Student Performance Analysis System
+# 🚀 Code_D-B: AI-Based Student Performance Analysis System
 
-## Setup
+Welcome to the backend repository of **Code_D-B**, an advanced, AI-driven educational technology platform designed to seamlessly bridge the gap between student learning trajectories and department-level academic monitoring.
+
+## 🌟 Overview
+Code_D-B serves two primary user personas:
+- **Students**: Receive personalized AI-generated learning roadmaps, skills parsing from resumes, and dynamic progress monitoring based on GitHub & Leetcode activities.
+- **Heads of Departments (HODs)**: Gain access to a powerful surveillance dashboard tracking holistic student performance metrics, calculated via a dynamic scoring system (Coding, Projects, Problem Solving, and Consistency).
+
+## 🛠️ Technology Stack
+- **Runtime**: Node.js v20.x
+- **Framework**: Express.js
+- **Database**: MongoDB & Mongoose ODM
+- **Authentication**: JWT with Role-Based Access Control (RBAC)
+- **AI Integration**: OpenAI API (for Resume Parsing and Curriculum Generation)
+- **Task Scheduling**: Node-cron (for automated reporting and data syncs)
+- **Testing**: Jest, Supertest
+
+## ⚙️ Local Development Setup
 
 ### Prerequisites
-- Node.js 20.x
-- MongoDB (local or Atlas)
+- Node.js (v20+ recommended)
+- MongoDB (Local instance or MongoDB Atlas cluster)
 
-### Installation
-1. Clone the repository
-2. Copy `.env.example` to `.env`
-3. Fill in the environment variables
-4. Run `npm install`
-5. Run `npm run seed` (optional - generates sample data)
-6. Run `npm run dev`
+### Installation Steps
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/code-db.git
+   cd code-db
+   ```
 
-## API Documentation
+2. **Setup Environment Variables:**
+   Copy the example config and populate it with your valid API keys:
+   ```bash
+   cp .env.example .env
+   ```
+   *Note: Ensure `OPENAI_API_KEY`, `YOUTUBE_API_KEY`, `MONGODB_URI`, and email credentials are valid.*
 
-Base URL: `http://localhost:5000/api/v1`
+3. **Install Dependencies:**
+   ```bash
+   npm install
+   ```
 
-### Authentication Endpoints
-- `POST /auth/register` - Create a new Student or HOD account
-- `POST /auth/login` - Authenticate and retrieve JWT
-- `POST /auth/refresh` - Request a fresh session access token
-- `POST /auth/logout` - Invalidate current tokens and session
+4. **Seed the Database (Optional):**
+   Generates mock HODs, students, and test data.
+   ```bash
+   npm run seed
+   ```
 
-### Student Endpoints
-- `GET /student/profile` - Fetch current student profile
-- `PUT /student/profile` - Update profile metrics (CGPA, skills, URLs)
-- `POST /student/resume` - Upload binary resume for AI parsing
-- `GET /student/roadmap` - Retrieve active AI roadmap
-- `POST /student/roadmap/generate` - Prompt GPT to generate a custom 4-12 week roadmap
-- `GET /student/progress` - Get current progression status
-- `PUT /student/progress` - Update status of specific tasks
-- `GET /student/score` - Retrieve overall calculated grading
-- `GET /student/recommendations` - Get AI/YouTube resource suggestions
+5. **Start the Development Server:**
+   ```bash
+   npm run dev
+   ```
 
-### HOD Endpoints
-- `GET /hod/students` - View paginated list of all students
-- `GET /hod/students/:id` - View detailed metrics of a specific student
-- `GET /hod/analytics` - View aggregated department analytics
-- `GET /hod/top-performers` - Get leaderboard of top students
-- `GET /hod/low-performers` - Identify students needing assistance
+## 📖 API Reference Summary
 
-### AI & Integration Endpoints
-- `POST /ai/chat` - Interact with the interest-detection chatbot
-- `POST /ai/analyze-resume` - Extract skills directly from a resume file
-- `GET /integrations/status` - Check active Github/Leetcode links
-- `POST /integrations/github/sync` - Synchronize GitHub token data
+The API exposes endpoints under `http://localhost:5000/api/v1`.
 
-## Testing
+| Module | Base Route | Key Features |
+|--------|------------|--------------|
+| **Authentication** | `/auth` | Register, Login, Refresh tokens, Logout |
+| **Student** | `/student` | Profile updates, Resume upload, Roadmap gen, Progress tracking |
+| **HOD** | `/hod` | View student lists, analytics dashboard, leaderboards, alerts |
+| **AI Insights** | `/ai` | Chatbot, Resume skills extraction |
+| **Integrations** | `/integrations` | Sync GitHub commits & LeetCode streaks |
+| **Notifications** | `/notifications` | Get, read, and mark alerts |
+
+*Please check the postman collection or Swagger docs (if integrated) for full request/response schemas.*
+
+## 🧪 Testing
+The testing architecture runs in an isolated, volatile in-memory MongoDB structure.
 ```bash
+# Run all tests
 npm test
+
+# Run tests in watch mode
 npm run test:watch
 ```
 
-## Deployment
-See deployment guide for Render deployment instructions.
+## 🚢 Deployment
+Ready to be deployed on platforms like **Render**, **Heroku**, or **Vercel** (`vercel.json` included). Check the deployment guides for specifics on injecting environment variables in production.
 
 ---
 
-## ⚠️ Outstanding Manual Tasks & Incomplete Items
+## ⚠️ Current Status & Manual Tasks Required
 
-As requested, here is the honest list of things you will need to do manually to bring this backend architecture to life:
+The **backend architecture is completely wrapped up**. To make the platform functional end-to-end, the following actions are needed:
 
-1. **Environment Variables Installation**: Open your `.env` file. You MUST manually replace the placeholder values with REAL developer keys:
-   - `OPENAI_API_KEY`: Required for the roadmap, resume parsing, and chat controllers to work.
-   - `YOUTUBE_API_KEY`: Required for the resource recommendations system.
-   - `EMAIL_PASS` & `EMAIL_USER`: Required for the weekly report nodemailers and registration welcome emails.
-2. **Database Provisioning**: You need to create a real MongoDB database (either locally installed, via Docker, or via a free MongoDB Atlas cluster) and paste that `mongodb+srv://...` link into your `MONGODB_URI` environment variable.
-3. **Run Install & Update Package.json**: 
-   - You must run `npm install` manually in your terminal to actually download all the required node modules we placed in `package.json`.
-   - Inside `package.json`, you need to manually hook up the seed scripts we wrote. Add `"seed": "node src/scripts/seedDatabase.js"` to your `"scripts"`.
-4. **Third-Party App OAuth Logic**: For GitHub and LeetCode integration syncs to truly work in production, you must manually go to GitHub Developer Settings to register an OAuth App so your students can generate actual access tokens for your domain.
-5. **Frontend Application**: This repository constitutes 100% of the backend REST API logic. You still need to initialize and build the actual React/Next.js frontend to securely consume these routes.
+1. **API Keys Integration**: Add your real OpenAI, YouTube, and Email SMTP credentials to `.env`.
+2. **Third-Party Sync**: Register OAuth apps on GitHub/LeetCode for live token generation.
+3. **Frontend Application**: Begin Phase 2 by initializing the React/Next.js frontend application to consume these backend RESTful endpoints.

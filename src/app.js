@@ -1,39 +1,63 @@
 const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
+const path = require('path');
 const routes = require('./routes');
-const errorMiddleware = require('./middleware/errorMiddleware');
 const AppError = require('./utils/AppError');
+
+// ─── Middleware imports (all from dedicated modules) ─────────────────────────
+const helmetMiddleware      = require('./middleware/helmetMiddleware');
+const corsMiddleware        = require('./middleware/corsMiddleware');
+const requestLogger         = require('./middleware/requestLoggerMiddleware');
+const errorMiddleware       = require('./middleware/errorMiddleware');
+const { authLimiter, apiLimiter } = require('./middleware/rateLimitMiddleware');
+// ─────────────────────────────────────────────────────────────────────────────
 
 const app = express();
 
-app.use(helmet());
-app.use(cors());
+// ── 1. Security headers (must be first) ──────────────────────────────────────
+app.use(helmetMiddleware);
+
+// ── 2. CORS (before any route / body parsing to handle preflight OPTIONS) ────
+app.use(corsMiddleware);
+
+// ── 3. HTTP request logger ────────────────────────────────────────────────────
+app.use(requestLogger);
+
+// ── 4. Body parsers ───────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-}
+// ── 5. Serve uploaded resumes as static files ─────────────────────────────────
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-const limiter = rateLimit({
-  max: 100,
-  windowMs: 60 * 60 * 1000,
-  message: 'Too many requests from this IP, please try again in an hour!'
+// ── 6. Rate limiting ──────────────────────────────────────────────────────────
+//   Auth limiter: strict (10 requests / 15 min) — brute-force protection
+app.use('/api/v1/auth', authLimiter);
+//   General limiter: normal (env-configured, default 100 / 15 min)
+app.use('/api', apiLimiter);
+
+const swaggerSetup = require('./config/swagger');
+
+// ── 7. Health Check ─────────────────────────────────────────────────────────────
+app.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    status: 'ok',
+    uptime: process.uptime()
+  });
 });
-app.use('/api', limiter);
 
-// Mount main routes at /api/v1
+// ── 8. Swagger Documentation ──────────────────────────────────────────────────
+swaggerSetup(app);
+
+// ── 9. API routes ─────────────────────────────────────────────────────────────
 app.use('/api/v1', routes);
 
-// 404 handler for unknown routes
+// ── 8. 404 handler — unknown routes ──────────────────────────────────────────
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
-// Global error handler
+// ── 9. Global error handler (must be last) ────────────────────────────────────
 app.use(errorMiddleware);
 
 module.exports = app;

@@ -30,6 +30,7 @@ const port = process.env.PORT || 5000;
 
 const server = app.listen(port, () => {
   logger.info(`App running on port ${port} in ${process.env.NODE_ENV} mode...`);
+  logger.info(`Test the backend API here: http://localhost:${port}/health`);
 });
 
 // Catch Unhandled Rejections
