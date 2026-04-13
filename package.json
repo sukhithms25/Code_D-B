@@ -11,7 +11,7 @@
     "test:watch": "jest --watch",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "seed": "node src/scripts/seedDatabase.js",
+    "seed": "node src/scripts/seed.js",
     "create-hod": "node src/scripts/createHODAccount.js"
   },
   "dependencies": {
