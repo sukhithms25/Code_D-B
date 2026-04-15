@@ -10,6 +10,10 @@ const connectDB = async () => {
       ? process.env.MONGODB_URI_PROD 
       : process.env.MONGODB_URI;
 
+    const maskedUri = uri.replace(/:([^@]+)@/, ':****@');
+    if (logger.info) logger.info(`Attempting to connect to: ${maskedUri}`);
+    else console.log(`Attempting to connect to: ${maskedUri}`);
+
     const conn = await mongoose.connect(uri, {
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
@@ -37,8 +41,13 @@ const connectDB = async () => {
     });
 
   } catch (error) {
-    if (logger.error) logger.error(`Error connecting to MongoDB: ${error.message}`);
-    else console.error(`Error connecting to MongoDB: ${error.message}`);
+    if (logger.error) {
+      logger.error(`Error connecting to MongoDB: ${error.message}`);
+      logger.error(`Error Details: ${JSON.stringify(error, null, 2)}`);
+    } else {
+      console.error(`Error connecting to MongoDB: ${error.message}`);
+      console.error('Error Details:', error);
+    }
     
     // Implement retry logic for production later, but for now just exit conditionally
     process.exit(1);
