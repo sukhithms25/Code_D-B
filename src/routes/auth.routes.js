@@ -35,6 +35,10 @@ const router = express.Router();
  *                 type: string
  *                 format: password
  *                 minLength: 8
+ *               role:
+ *                 type: string
+ *                 enum: [student, hod, admin]
+ *                 default: student
  *     responses:
  *       201:
  *         description: User successfully registered

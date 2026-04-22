@@ -15,14 +15,7 @@ exports.register = Joi.object({
   lastName: Joi.string().max(50).required().messages({
     'any.required': 'Last name is required'
   }),
-  role: Joi.string().valid('student', 'hod', 'admin').default('student'),
-  department: Joi.alternatives().conditional('role', { 
-    is: 'hod', 
-    then: Joi.string().required().messages({
-      'any.required': 'Department is required for HODs'
-    }), 
-    otherwise: Joi.optional() 
-  })
+  role: Joi.string().valid('student', 'hod', 'admin').default('student')
 });
 
 exports.login = Joi.object({
