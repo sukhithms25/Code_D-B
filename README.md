@@ -1,91 +1,123 @@
-# 🚀 Code_D-B: AI-Based Student Performance Analysis System
+# 🚀 Code-D-B: Full-Stack Integration Audit Guide (42/42)
 
-Welcome to the backend repository of **Code_D-B**, an advanced, AI-driven educational technology platform designed to seamlessly bridge the gap between student learning trajectories and department-level academic monitoring.
+This document provides a comprehensive checklist for manually testing every single endpoint in the backend system.
 
-## 🌟 Overview
-Code_D-B serves two primary user personas:
-- **Students**: Receive personalized AI-generated learning roadmaps, skills parsing from resumes, and dynamic progress monitoring based on GitHub & Leetcode activities.
-- **Heads of Departments (HODs)**: Gain access to a powerful surveillance dashboard tracking holistic student performance metrics, calculated via a dynamic scoring system (Coding, Projects, Problem Solving, and Consistency).
-
-## 🛠️ Technology Stack
-- **Runtime**: Node.js v20.x
-- **Framework**: Express.js
-- **Database**: MongoDB & Mongoose ODM
-- **Authentication**: JWT with Role-Based Access Control (RBAC)
-- **AI Integration**: OpenAI API (for Resume Parsing and Curriculum Generation)
-- **Task Scheduling**: Node-cron (for automated reporting and data syncs)
-- **Testing**: Jest, Supertest
-
-## ⚙️ Local Development Setup
-
-### Prerequisites
-- Node.js (v20+ recommended)
-- MongoDB (Local instance or MongoDB Atlas cluster)
-
-### Installation Steps
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/code-db.git
-   cd code-db
-   ```
-
-2. **Setup Environment Variables:**
-   Copy the example config and populate it with your valid API keys:
-   ```bash
-   cp .env.example .env
-   ```
-   *Note: Ensure `OPENAI_API_KEY`, `YOUTUBE_API_KEY`, `MONGODB_URI`, and email credentials are valid.*
-
-3. **Install Dependencies:**
-   ```bash
-   npm install
-   ```
-
-4. **Seed the Database (Optional):**
-   Generates mock HODs, students, and test data.
-   ```bash
-   npm run seed
-   ```
-
-5. **Start the Development Server:**
-   ```bash
-   npm run dev
-   ```
-
-## 📖 API Reference Summary
-
-The API exposes endpoints under `http://localhost:5000/api/v1`.
-
-| Module | Base Route | Key Features |
-|--------|------------|--------------|
-| **Authentication** | `/auth` | Register, Login, Refresh tokens, Logout |
-| **Student** | `/student` | Profile updates, Resume upload, Roadmap gen, Progress tracking |
-| **HOD** | `/hod` | View student lists, analytics dashboard, leaderboards, alerts |
-| **AI Insights** | `/ai` | Chatbot, Resume skills extraction |
-| **Integrations** | `/integrations` | Sync GitHub commits & LeetCode streaks |
-| **Notifications** | `/notifications` | Get, read, and mark alerts |
-
-*Please check the postman collection or Swagger docs (if integrated) for full request/response schemas.*
-
-## 🧪 Testing
-The testing architecture runs in an isolated, volatile in-memory MongoDB structure.
-```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-```
-
-## 🚢 Deployment
-Ready to be deployed on platforms like **Render**, **Heroku**, or **Vercel** (`vercel.json` included). Check the deployment guides for specifics on injecting environment variables in production.
+## 🛠️ Global Setup
+1. **Base URL**: `http://localhost:5000/api/v1`
+2. **Swagger Docs**: `http://localhost:5000/api-docs`
+3. **Authorization**: Most endpoints (Student/HOD) require a **Bearer Token**. 
+   - Get the token from `POST /auth/login`.
+   - Click "Authorize" in Swagger and paste it.
 
 ---
 
-## ⚠️ Current Status & Manual Tasks Required
+## 📅 Recommended Testing Sequence
 
-The **backend architecture is completely wrapped up**. To make the platform functional end-to-end, the following actions are needed:
+### PHASE 1: Authentication (7 Endpoints)
+| # | Endpoint | Method | Purpose | Required Body |
+|---|---|---|---|---|
+| 1 | `/auth/register` | POST | Create Student/HOD | `{ email, password, firstName, lastName, role, branch, year }` |
+| 2 | `/auth/login` | POST | Get Access Token | `{ email, password }` |
+| 3 | `/auth/refresh` | POST | Rotate Tokens | `{ refreshToken }` |
+| 4 | `/auth/forgot-password` | POST | Request Reset | `{ email }` |
+| 5 | `/auth/reset-password/:token` | POST | Set New Password | `{ password }` |
+| 6 | `/auth/update-password` | PATCH | Change while logged in | `{ oldPassword, newPassword }` |
+| 7 | `/auth/logout` | POST | End Session | None |
 
-1. **API Keys Integration**: Add your real OpenAI, YouTube, and Email SMTP credentials to `.env`.
-2. **Third-Party Sync**: Register OAuth apps on GitHub/LeetCode for live token generation.
-3. **Frontend Application**: Begin Phase 2 by initializing the React/Next.js frontend application to consume these backend RESTful endpoints.
+### PHASE 2: Student Profile & Setup (5 Endpoints)
+| # | Endpoint | Method | Purpose | Notes |
+|---|---|---|---|---|
+| 8 | `/student/profile` | GET | Fetch own data | Checks if branch/year saved |
+| 9 | `/student/profile` | PUT | Update Professional Info | Add `leetcodeUsername`, `linkedinUrl`, `careerGoal` |
+| 10| `/student/resume` | POST | Upload PDF Resume | Use `multipart/form-data` |
+| 11| `/student/resume/analyze` | GET | Extract skills | Uses local parsing logic |
+| 12| `/student/score` | GET | Live Platform Score | Calculates grade (A-F) |
+
+### PHASE 3: AI Intelligence Engine (4 Endpoints)
+| # | Endpoint | Method | Purpose | Required Body |
+|---|---|---|---|---|
+| 13| `/ai/chat` | POST | Mentorship Chat | `{ message: "Help me with React" }` |
+| 14| `/ai/generate-roadmap` | POST | AI Logic Trigger | `{ goal, currentSkills }` |
+| 15| `/ai/analyze-resume` | POST | AI Resume Parsing | `{ text }` |
+| 16| `/ai/recommend` | GET | Skill Suggestions | Query: `?skills=javascript` |
+
+### PHASE 4: Roadmap & Progress (4 Endpoints)
+| # | Endpoint | Method | Purpose | Required Body |
+|---|---|---|---|---|
+| 17| `/student/roadmap` | GET | View Active Plan | Returns 4-week structure |
+| 18| `/student/roadmap/generate`| POST | User Trigger for AI | `{ goal: "DevOps Engineer" }` |
+| 19| `/student/progress` | GET | History | List of all completed tasks |
+| 20| `/student/progress` | PUT | Mark Task | `{ roadmapId, taskId, isCompleted: true }` |
+
+### PHASE 5: Integrations & Resources (6 Endpoints)
+| # | Endpoint | Method | Purpose | Notes |
+|---|---|---|---|---|
+| 21| `/integrations/github/connect`| GET | OAuth Start | Browser Redirect |
+| 22| `/integrations/github/callback`| GET | OAuth Finalize | Handled by GitHub |
+| 23| `/integrations/status` | GET | Connection List | Shows connected usernames |
+| 24| `/integrations/github/sync` | POST | Pull Commit Data | Updates platform score |
+| 25| `/integrations/leetcode/sync` | POST | Pull Problem Stats | Updates platform score |
+| 26| `/integrations/resources` | GET | Learning Links | Fallback if AI is offline |
+
+### PHASE 6: Notifications & Announcements (5 Endpoints)
+| # | Endpoint | Method | Purpose | Required Body |
+|---|---|---|---|---|
+| 27| `/notifications` | GET | List Alerts | Notifications for this user |
+| 28| `/notifications/mark-all` | PUT | Clear All | Sets all to read |
+| 29| `/notifications/:id` | PUT | Mark Single | Sets specific alert to read |
+| 30| `/student/announcements` | GET | HOD Broadcasts | Filtered by branch/year |
+| 31| `/student/announcements/:id/respond` | POST | Acknowledge | `{ response: "Coming!" }` |
+
+### PHASE 7: HOD Monitoring & Analytics (10 Endpoints)
+| # | Endpoint | Method | Purpose | Role Required |
+|---|---|---|---|---|
+| 32| `/hod/students` | GET | Student Directory | HOD/Admin |
+| 33| `/hod/students/:id` | GET | Deep Dive Profile | HOD/Admin |
+| 34| `/hod/rankings` | GET | Leaderboard | Global rankings |
+| 35| `/hod/alerts` | GET | At-Risk Students | Flags low performers |
+| 36| `/hod/analytics` | GET | Dept aggregates | Grade distributions |
+| 37| `/hod/top-performers` | GET | Elite List | Grade A students |
+| 38| `/hod/low-performers` | GET | Support List | Grade D/F students |
+| 39| `/hod/announcements` | POST | Create Broadcast | `{ title, body, targetBranch }` |
+| 40| `/hod/announcements` | GET | Audit History | View past broadcasts |
+| 41| `/hod/announcements/:id` | DELETE| Archive | Removes announcement |
+
+### PHASE 8: Health & System (1 Endpoint)
+| # | Endpoint | Method | Purpose |
+|---|---|---|---|
+| 42| `/health` | GET | Check Status | Verifies API & DB connection |
+
+---
+
+## 🛡️ Sample Payload for Complex Tests
+
+### 1. Register a Student
+```json
+{
+  "firstName": "Surya",
+  "lastName": "Kumar",
+  "email": "student@example.com",
+  "password": "password123",
+  "role": "student",
+  "branch": "Computer Science",
+  "year": 3
+}
+```
+
+### 2. Create HOD Announcement
+```json
+{
+  "title": "Semester Final Projects",
+  "body": "Please submit your GitHub links by Friday.",
+  "priority": "high",
+  "targetBranch": "Computer Science",
+  "notifyByEmail": true
+}
+```
+
+### 3. AI Roadmap Goal
+```json
+{
+  "goal": "Cloud Architect (AWS/Azure)"
+}
+```

@@ -93,12 +93,14 @@ const githubCallback = async (req, res) => {
       ...githubData
     });
 
-    return res.json({
-      success: true,
-      githubConnected: true,
-      githubUsername: profile.login,
-      repoCount: repos.length
-    });
+    const Integration = require("../../models/Integration");
+    await Integration.findOneAndUpdate(
+      { studentId: userId },
+      { githubToken, githubSyncedAt: Date.now(), lastSyncedAt: Date.now() },
+      { new: true, upsert: true }
+    );
+
+    return res.redirect(`${process.env.FRONTEND_URL}/student/profile?github=success`);
 
   } catch (err) {
     console.error("GitHub OAuth Error:", err.message);

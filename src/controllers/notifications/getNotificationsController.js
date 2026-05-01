@@ -13,5 +13,15 @@ module.exports = catchAsync(async (req, res, next) => {
      notifications = await Notification.find({ userId: req.user._id }).sort('-createdAt');
   }
 
-  res.status(200).json(new ApiResponse(200, notifications, 'Notifications retrieved successfully'));
+  // Map to frontend expected keys (id, read)
+  const mapped = notifications.map(n => ({
+    id: n._id,
+    title: n.title,
+    message: n.message,
+    type: n.type,
+    read: n.isRead,
+    createdAt: n.createdAt
+  }));
+
+  res.status(200).json(new ApiResponse(200, { notifications: mapped }, 'Notifications retrieved successfully'));
 });

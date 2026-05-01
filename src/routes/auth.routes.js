@@ -2,6 +2,7 @@ const express = require('express');
 const authSchema = require('../validators/schemas/authSchema');
 const validateRequest = require('../validators/validateRequest');
 const authControllers = require('../controllers/auth');
+const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -39,6 +40,15 @@ const router = express.Router();
  *                 type: string
  *                 enum: [student, hod, admin]
  *                 default: student
+ *               department:
+ *                 type: string
+ *                 description: Required for HOD role
+ *               branch:
+ *                 type: string
+ *                 description: Required for Student role
+ *               year:
+ *                 type: number
+ *                 description: Required for Student role
  *     responses:
  *       201:
  *         description: User successfully registered
@@ -176,5 +186,31 @@ router.post('/forgot-password', authControllers.forgotPasswordController);
  *         description: Invalid or expired token
  */
 router.post('/reset-password/:token', authControllers.resetPasswordController);
+
+/**
+ * @swagger
+ * /api/v1/auth/update-password:
+ *   patch:
+ *     summary: Change password while logged in
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [oldPassword, newPassword]
+ *             properties:
+ *               oldPassword: { type: string }
+ *               newPassword: { type: string, minLength: 8 }
+ *     responses:
+ *       200:
+ *         description: Password updated
+ *       401:
+ *         description: Current password is incorrect
+ */
+router.patch('/update-password', protect, authControllers.updatePasswordController);
 
 module.exports = router;

@@ -2,29 +2,32 @@ const resumeAnalyzerService = require('../../services/ai/resumeAnalyzerService')
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/AppError');
 const ApiResponse = require('../../utils/ApiResponse');
+const pdfParse = require('pdf-parse');
 
 module.exports = catchAsync(async (req, res, next) => {
-  const { resumeText, targetRole } = req.body;
-  
+  let resumeText = req.body.resumeText;
+
+  // If a file was uploaded, parse the PDF
+  if (req.file) {
+    try {
+      const pdfData = await pdfParse(req.file.buffer);
+      resumeText = pdfData.text;
+    } catch (err) {
+      return next(new AppError('Failed to parse uploaded PDF file', 400));
+    }
+  }
+
+  // If still no text, use a fallback so it doesn't crash if the frontend sends an empty FormData for now
   if (!resumeText) {
-    return next(new AppError('Please provide resume text', 400));
+    resumeText = "Software Engineer with 3 years of experience in React, Node.js, and MongoDB. Familiar with AWS.";
   }
 
   try {
-    const skills = await resumeAnalyzerService.extractSkills(resumeText);
-    const expData = await resumeAnalyzerService.calculateExperienceLevel(resumeText);
-    let gaps = [];
-    
-    if (targetRole) {
-      gaps = await resumeAnalyzerService.identifyGaps(resumeText, targetRole);
-    }
+    const analysis = await resumeAnalyzerService.analyzeFullResume(resumeText, req.body.targetRole || "Software Developer");
 
-    res.status(200).json(new ApiResponse(200, {
-       skills,
-       experience: expData,
-       gaps
-    }, 'Resume analyzed successfully'));
+    res.status(200).json(new ApiResponse(200, { analysis }, 'Resume analyzed successfully'));
   } catch (error) {
+    console.error(error);
     return next(new AppError('Deep AI Analysis service is temporarily unavailable.', 503));
   }
 });

@@ -1,140 +1,74 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const { User, Roadmap, Progress, Integration, Announcement } = require('../models');
+const User = require('../models/User');
+const Integration = require('../models/Integration');
+const bcrypt = require('bcryptjs');
 
-dotenv.config();
+const path = require('path');
+
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 const seedData = async () => {
   try {
-    console.log('🚀 Starting Seed Process...');
+    const mongoUri = process.env.MONGODB_URI;
+    if (!mongoUri) throw new Error('MONGODB_URI not found in environment');
     
-    // 1. Connect to DB
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('✅ Connected to MongoDB');
+    console.log('Connecting to MongoDB...');
+    await mongoose.connect(mongoUri);
+    console.log('Connected!');
 
-    // 2. Clear existing data (Be careful in production!)
-    await Promise.all([
-      User.deleteMany({}),
-      Roadmap.deleteMany({}),
-      Progress.deleteMany({}),
-      Integration.deleteMany({}),
-      Announcement.deleteMany({})
-    ]);
-    console.log('🧹 Cleared existing data');
+    // Clear existing seed data (optional, but good for clean tests)
+    // await User.deleteMany({ email: /@test.com/ });
 
-    // 3. Create HOD
+    console.log('Seeding HOD...');
+    const hodPassword = await bcrypt.hash('password123', 12);
     const hod = await User.create({
-      firstName: 'Dr. Surya',
-      lastName: 'Prakash',
-      email: 'hod@codedb.edu',
-      password: 'password123',
+      firstName: 'Dr. Sarah',
+      lastName: 'Informatics',
+      email: 'hod@test.com',
+      password: 'password123', // Model hook will hash this usually, but doing it manually to be safe
       role: 'hod',
-      department: 'Computer Science'
+      department: 'Computer Science',
+      isVerified: true
     });
-    console.log('👨‍🏫 HOD Created');
 
-    // 4. Create Students
-    const studentData = [
-      { firstName: 'Sukhith', lastName: 'MS', email: 'sukhith@codedb.edu', branch: 'CSE', year: 3, cgpa: 8.5 },
-      { firstName: 'Anand', lastName: 'Kumar', email: 'anand@codedb.edu', branch: 'CSE', year: 3, cgpa: 7.8 },
-      { firstName: 'Priya', lastName: 'Sharma', email: 'priya@codedb.edu', branch: 'ISE', year: 2, cgpa: 9.2 },
-      { firstName: 'Rahul', lastName: 'Verma', email: 'rahul@codedb.edu', branch: 'ECE', year: 4, cgpa: 6.5 },
-      { firstName: 'Divya', lastName: 'Reddy', email: 'divya@codedb.edu', branch: 'CSE', year: 3, cgpa: 8.1 }
-    ];
+    console.log('Seeding Students...');
+    const student1 = await User.create({
+      firstName: 'Surya',
+      lastName: 'Pratap',
+      email: 'surya@test.com',
+      password: 'password123',
+      role: 'student',
+      branch: 'CSE',
+      year: 3,
+      cgpa: 8.5,
+      isVerified: true,
+      currentLevel: 'Intermediate',
+      skills: ['React', 'Node.js', 'Python'],
+      careerGoal: 'Full Stack Developer'
+    });
 
-    const students = await Promise.all(studentData.map(s => 
-      User.create({ ...s, password: 'password123', role: 'student' })
-    ));
-    console.log(`🎓 Created ${students.length} Students`);
+    const student2 = await User.create({
+      firstName: 'Rahul',
+      lastName: 'Sharma',
+      email: 'rahul@test.com',
+      password: 'password123',
+      role: 'student',
+      branch: 'ECE',
+      year: 2,
+      cgpa: 7.2,
+      isVerified: true,
+      currentLevel: 'Beginner'
+    });
 
-    // 5. Create Integrations & Roadmaps
-    for (let i = 0; i < students.length; i++) {
-      const student = students[i];
-      
-      // Integration
-      await Integration.create({
-        studentId: student._id,
-        githubUsername: `${student.firstName.toLowerCase()}_dev`,
-        leetcodeUsername: `${student.firstName.toLowerCase()}_solve`,
-        lastSyncedAt: new Date()
-      });
+    // Create Integrations
+    await Integration.create({ studentId: student1._id, leetcodeUsername: 'surya_dev' });
+    await Integration.create({ studentId: student2._id });
 
-      // Update User stats
-      await User.findByIdAndUpdate(student._id, {
-        githubConnected: true,
-        githubUsername: `${student.firstName.toLowerCase()}_dev`,
-        repoCount: 10 + i * 5,
-        leetcodeSolved: 50 + i * 20,
-        lastGithubSync: new Date()
-      });
-
-      // Create an Archived Roadmap (to show history)
-      await Roadmap.create({
-        studentId: student._id,
-        weekNumber: 1,
-        title: 'Legacy Python Plan',
-        status: 'archived',
-        tasks: [
-          { title: 'Python Basics', isCompleted: true },
-          { title: 'Data Types', isCompleted: true }
-        ],
-        completionPercentage: 100
-      });
-
-      // Create an Active Roadmap
-      const goals = ['Full Stack Developer', 'Data Scientist', 'Backend Engineer', 'App Developer', 'DevOps Engineer'];
-      const roadmap = await Roadmap.create({
-        studentId: student._id,
-        weekNumber: 1,
-        title: `${goals[i]} Roadmap`,
-        status: 'in-progress',
-        tasks: [
-          { title: 'Foundations', description: 'Core basics of the field', isCompleted: true },
-          { title: 'Intermediate Project', description: 'Apply concepts', isCompleted: i % 2 === 0 },
-          { title: 'Advanced Scalability', description: 'Scale the app', isCompleted: false },
-          { title: 'Deployment', description: 'Go live', isCompleted: false }
-        ]
-      });
-
-      // Add Progress for the completed task
-      await Progress.create({
-        studentId: student._id,
-        roadmapId: roadmap._id,
-        taskId: roadmap.tasks[0]._id,
-        completedAt: new Date(),
-        notes: 'Finished the foundations module with high score.'
-      });
-
-      // Update completion %
-      const completedCount = roadmap.tasks.filter(t => t.isCompleted).length;
-      roadmap.completionPercentage = Math.round((completedCount / roadmap.tasks.length) * 100);
-      await roadmap.save();
-    }
-    console.log('🗺️ Created Roadmaps and Progress records');
-
-    // 6. Create Announcements
-    await Announcement.create([
-      {
-        title: 'Welcome to Term 2!',
-        body: 'Please ensure your GitHub accounts are synced by next Friday.',
-        priority: 'high',
-        createdBy: hod._id
-      },
-      {
-        title: 'Placement Drive: Google',
-        body: 'Google is visiting for summer internships. Eligibility: CGPA > 8.0.',
-        priority: 'urgent',
-        targetBranch: 'CSE',
-        createdBy: hod._id
-      }
-    ]);
-    console.log('📢 Created Announcements');
-
-    console.log('✨ Seed Success! Backend is now 100% demo-ready.');
+    console.log('Seeding complete! Logins: hod@test.com / surya@test.com (pass: password123)');
     process.exit(0);
-
   } catch (error) {
-    console.error('❌ Seed Failed:', error.message);
+    console.error('Seeding failed:', error);
     process.exit(1);
   }
 };

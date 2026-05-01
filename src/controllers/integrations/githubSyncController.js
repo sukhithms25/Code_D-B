@@ -5,21 +5,13 @@ const AppError = require('../../utils/AppError');
 const ApiResponse = require('../../utils/ApiResponse');
 
 module.exports = catchAsync(async (req, res, next) => {
-  const { token } = req.body;
-  if (!token) {
-    return next(new AppError('GitHub token is required for sync', 400));
+  let integration = await Integration.findOne({ studentId: req.user._id });
+  
+  if (!integration || !integration.githubToken) {
+    return next(new AppError('GitHub is not connected. Please connect GitHub first.', 400));
   }
 
-  let integration;
-  try {
-    integration = await Integration.findOneAndUpdate(
-      { studentId: req.user._id },
-      { githubToken: token, githubSyncedAt: Date.now(), lastSyncedAt: Date.now() },
-      { new: true, upsert: true }
-    );
-  } catch (err) {
-      return next(new AppError('Failed to save integration data', 500));
-  }
+  const token = integration.githubToken;
 
   try {
     // Validate token

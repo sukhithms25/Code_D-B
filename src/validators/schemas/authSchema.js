@@ -15,7 +15,22 @@ exports.register = Joi.object({
   lastName: Joi.string().max(50).required().messages({
     'any.required': 'Last name is required'
   }),
-  role: Joi.string().valid('student', 'hod', 'admin').default('student')
+  role: Joi.string().valid('student', 'hod', 'admin').default('student'),
+  department: Joi.string().allow('', null).when('role', {
+    is: 'hod',
+    then: Joi.required(),
+    otherwise: Joi.optional()
+  }),
+  branch: Joi.string().allow('', null).when('role', {
+    is: 'student',
+    then: Joi.required(),
+    otherwise: Joi.optional()
+  }),
+  year: Joi.number().allow('', null).when('role', {
+    is: 'student',
+    then: Joi.required(),
+    otherwise: Joi.optional()
+  })
 });
 
 exports.login = Joi.object({

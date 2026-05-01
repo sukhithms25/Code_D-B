@@ -9,6 +9,7 @@ const validateRequest = (schema) => {
     
     if (error) {
       const errorDetails = error.details.map((detail) => detail.message);
+      console.error('Validation Error details:', errorDetails);
       
       const appErr = new AppError('Validation failed', 400);
       appErr.errorsArray = errorDetails; // Pack array natively to trigger error format structure

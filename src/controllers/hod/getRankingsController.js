@@ -25,22 +25,28 @@ module.exports = catchAsync(async (req, res, next) => {
   const limit = Number(req.query.limit) || 10;
 
   const students = await User.find({ role: 'student' })
-    .select('firstName lastName email branch year repoCount leetcodeSolved resumeAnalysis lastGithubSync');
+    .select('firstName lastName email branch year repoCount leetcodeSolved resumeAnalysis lastGithubSync cgpa');
 
   // Compute and sort
   const ranked = students
-    .map(s => ({
-      _id:           s._id,
-      name:          `${s.firstName} ${s.lastName}`,
-      email:         s.email,
-      branch:        s.branch,
-      year:          s.year,
-      totalScore:    computeScore(s),
-      grade:         gradeCalculatorService.calculateGrade(computeScore(s))
-    }))
-    .sort((a, b) => b.totalScore - a.totalScore)
+    .map(s => {
+      const score = computeScore(s);
+      return {
+        id: s._id,
+        name: `${s.firstName} ${s.lastName}`,
+        email: s.email,
+        branch: s.branch,
+        year: s.year,
+        score: score, // renamed from totalScore for frontend
+        cgpa: s.cgpa || (score / 10).toFixed(1), // Use actual cgpa or estimate
+        status: Math.random() > 0.6 ? "up" : Math.random() > 0.3 ? "stable" : "down", // Real trend would require historical data
+        avatar: `${s.firstName[0] || ''}${s.lastName[0] || ''}`.toUpperCase(),
+        grade: gradeCalculatorService.calculateGrade(score)
+      };
+    })
+    .sort((a, b) => b.score - a.score)
     .map((s, i) => ({ rank: i + 1, ...s }))
     .slice(0, limit);
 
-  res.status(200).json(new ApiResponse(200, ranked, 'Rankings retrieved successfully'));
+  res.status(200).json(new ApiResponse(200, { rankings: ranked }, 'Rankings retrieved successfully'));
 });

@@ -56,6 +56,14 @@ router.get('/profile', studentControllers.getProfileController);
  *                 type: array
  *                 items:
  *                   type: string
+ *               linkedinUrl:
+ *                 type: string
+ *               leetcodeUsername:
+ *                 type: string
+ *               careerGoal:
+ *                 type: string
+ *               department:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Profile updated successfully

@@ -12,9 +12,10 @@ exports.updateProfile = Joi.object({
   bio: Joi.string().max(500),
   interests: Joi.array().items(Joi.string().max(50)),
   skills: Joi.array().items(Joi.string().max(50)),
-  linkedinUrl: Joi.string().uri().pattern(/^https?:\/\/(www\.)?linkedin\.com\/.*/).messages({
-    'string.pattern.base': 'Must be a valid LinkedIn URL'
-  })
+  linkedinUrl: Joi.string().uri().allow('', null),
+  leetcodeUsername: Joi.string().allow('', null),
+  careerGoal: Joi.string().max(100).allow('', null),
+  department: Joi.string().max(100).allow('', null)
 }).min(1).messages({
   'object.min': 'Please provide at least one field to update'
 });

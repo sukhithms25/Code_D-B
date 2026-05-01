@@ -29,5 +29,5 @@ module.exports = catchAsync(async (req, res, next) => {
     .sort((a, b) => b.totalScore - a.totalScore)
     .slice(0, limit);
 
-  res.status(200).json(new ApiResponse(200, ranked, 'Top performers retrieved successfully'));
+  res.status(200).json(new ApiResponse(200, { students: ranked }, 'Top performers retrieved successfully'));
 });

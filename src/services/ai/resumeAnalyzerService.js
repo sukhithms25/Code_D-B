@@ -1,54 +1,30 @@
-const { openai } = require('../../config');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const logger = require('../../utils/logger');
 
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
 class ResumeAnalyzerService {
-  async extractSkills(resumeText) {
+  async analyzeFullResume(resumeText, targetRole) {
     try {
-      const response = await openai.chat.completions.create({
-        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: 'Extract a list of technical and soft skills from the resume text. Return a JSON object with a "skills" array.' },
-          { role: 'user', content: resumeText }
-        ],
-        response_format: { type: 'json_object' }
-      });
-      return JSON.parse(response.choices[0].message.content).skills || [];
-    } catch (error) {
-      logger.error('Error extracting skills:', error);
-      throw error;
-    }
-  }
+      const model = genAI.getGenerativeModel({ model: process.env.AI_MODEL || "gemini-1.5-flash" });
+      const prompt = `You are an expert technical recruiter and AI auditor. Analyze the following resume text for the target role of "${targetRole}".
+Resume Text: """${resumeText}"""
 
-  async calculateExperienceLevel(resumeText) {
-    try {
-      const response = await openai.chat.completions.create({
-        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: 'Analyze the resume text and estimate the total years of professional experience. Return a JSON object with "yearsOfExperience" (number) and "level" (junior, mid, senior).' },
-          { role: 'user', content: resumeText }
-        ],
-        response_format: { type: 'json_object' }
-      });
-      return JSON.parse(response.choices[0].message.content);
+Respond ONLY with a raw JSON object (no markdown, no backticks) with the following exact structure:
+{
+  "score": 85, // integer 0-100
+  "skills": ["React", "Node.js", "MongoDB"], // array of detected technical skills
+  "gaps": ["Kubernetes", "AWS"], // array of missing key skills for the role
+  "match": "85% match for ${targetRole}" // a brief match statement
+}`;
+      
+      const result = await model.generateContent(prompt);
+      let text = result.response.text();
+      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      
+      return JSON.parse(text);
     } catch (error) {
-      logger.error('Error calculating experience:', error);
-      throw error;
-    }
-  }
-
-  async identifyGaps(resumeText, targetRole) {
-    try {
-      const response = await openai.chat.completions.create({
-        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: `Identify missing skills or experience gaps in the resume text for a candidate targeting the role of ${targetRole}. Return a JSON object with a "gaps" array.` },
-          { role: 'user', content: resumeText }
-        ],
-        response_format: { type: 'json_object' }
-      });
-      return JSON.parse(response.choices[0].message.content).gaps || [];
-    } catch (error) {
-      logger.error('Error identifying gaps:', error);
+      logger.error('Error analyzing resume with AI:', error);
       throw error;
     }
   }

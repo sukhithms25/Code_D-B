@@ -32,6 +32,15 @@ module.exports = catchAsync(async (req, res, next) => {
   try {
     await emailService.sendPasswordResetEmail(user.email, resetToken);
 
+    // Create in-app notification as well
+    const notificationService = require('../../services/notifications/notificationService');
+    await notificationService.createNotification({
+      userId: user._id,
+      title: 'Password Reset Request',
+      message: 'A password reset link has been sent to your email. It expires in 15 minutes.',
+      type: 'security'
+    });
+
     res.status(200).json(new ApiResponse(200, null, 'If that email is registered, you will receive a reset link.'));
   } catch (error) {
     user.passwordResetToken = undefined;

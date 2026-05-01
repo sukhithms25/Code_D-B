@@ -1,21 +1,19 @@
-const { openai } = require('../../config');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const logger = require('../../utils/logger');
 
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
 class RoadmapGeneratorService {
-  async generateRoadmap(interests, skillLevel, weeks = 4) {
+  async generateRoadmap(goal) {
     try {
-      const prompt = `Generate a ${weeks}-week learning roadmap for a ${skillLevel} level student interested in: ${interests.join(', ')}. Format as JSON with weekNumber, tasks (title, description), and recommended resources.`;
+      const model = genAI.getGenerativeModel({ model: process.env.AI_MODEL || "gemini-1.5-flash" });
+      const prompt = `Generate a 4-week learning roadmap for a student interested in: ${goal}. Format as JSON with weekNumber, tasks (title, description), and recommended resources. Ensure the response is valid JSON format matching { "roadmap": [ { "weekNumber": 1, "tasks": [ { "title": "...", "description": "..." } ], "resources": ["..."] } ] }. Do not use markdown backticks, just raw JSON.`;
       
-      const response = await openai.chat.completions.create({
-        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: 'You are an expert technical curriculum designer returning structured JSON roadmaps. Key must be "roadmap" containing an array of weekly plans.' },
-          { role: 'user', content: prompt }
-        ],
-        response_format: { type: 'json_object' }
-      });
+      const result = await model.generateContent(prompt);
+      let text = result.response.text();
+      text = text.replace(/```json/g, '').replace(/```/g, ''); // strip markdown
       
-      return JSON.parse(response.choices[0].message.content).roadmap || [];
+      return JSON.parse(text).roadmap || [];
     } catch (error) {
       logger.error('Error generating roadmap:', error);
       throw error;

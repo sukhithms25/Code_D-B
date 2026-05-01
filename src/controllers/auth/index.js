@@ -4,5 +4,6 @@ module.exports = {
   refreshTokenController: require('./refreshTokenController'),
   logoutController: require('./logoutController'),
   forgotPasswordController: require('./forgotPasswordController'),
-  resetPasswordController: require('./resetPasswordController')
+  resetPasswordController: require('./resetPasswordController'),
+  updatePasswordController: require('./updatePasswordController')
 };

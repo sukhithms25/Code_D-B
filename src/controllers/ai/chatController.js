@@ -4,16 +4,16 @@ const AppError = require('../../utils/AppError');
 const ApiResponse = require('../../utils/ApiResponse');
 
 module.exports = catchAsync(async (req, res, next) => {
-  const { history } = req.body;
-  if (!history || !Array.isArray(history)) {
-    return next(new AppError('Please provide conversation history array', 400));
+  const { message } = req.body;
+  if (!message) {
+    return next(new AppError('Please provide a message', 400));
   }
 
   try {
-    const interests = await chatbotService.detectInterests(history);
-    res.status(200).json(new ApiResponse(200, { interests }, 'Interests detected'));
+    const reply = await chatbotService.chat(message);
+    res.status(200).json(new ApiResponse(200, { reply }, 'AI response generated'));
   } catch (error) {
-    // Graceful failure if AI service is not configured
+    console.error(error);
     return next(new AppError('AI Mentor service is temporarily unavailable. Check configuration.', 503));
   }
 });

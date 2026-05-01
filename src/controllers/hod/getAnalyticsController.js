@@ -47,10 +47,15 @@ module.exports = catchAsync(async (req, res, next) => {
     if (s.branch) branchBreakdown[s.branch] = (branchBreakdown[s.branch] || 0) + 1;
   });
 
+  const atRiskCount = scores.filter(s => s < 40).length;
+  const topPerformersCount = scores.filter(s => s >= 85).length;
+
   res.status(200).json(new ApiResponse(200, {
     totalStudents:         students.length,
-    avgScore,
+    averagePerformance:    avgScore, // Frontend uses averagePerformance
     topScore,
+    atRiskCount,             // Frontend uses this
+    topPerformersCount,      // Frontend uses this
     gradeDistribution,
     githubConnectedCount,
     leetcodeConnectedCount,

@@ -51,13 +51,26 @@ module.exports = catchAsync(async (req, res, next) => {
 
   const enriched = students.map(s => {
     const { totalScore, grade } = computeScore(s);
+    let risk = "Low";
+    if (totalScore < 40) risk = "High";
+    else if (totalScore < 70) risk = "Medium";
+
+    let status = "Average";
+    if (totalScore >= 85) status = "Excellent";
+    else if (totalScore < 40) status = "At Risk";
+    else if (totalScore < 60) status = "Underperforming";
+
     return {
       _id:             s._id,
+      id:              s._id.toString().substring(0, 9).toUpperCase(), // Mock UID for frontend format
       name:            `${s.firstName} ${s.lastName}`,
       email:           s.email,
       branch:          s.branch,
       year:            s.year,
-      cgpa:            s.cgpa,
+      cgpa:            s.cgpa || (totalScore / 10).toFixed(1),
+      progress:        totalScore,
+      status:          status,
+      risk:            risk,
       githubConnected: s.githubConnected,
       githubUsername:  s.githubUsername,
       repoCount:       s.repoCount,

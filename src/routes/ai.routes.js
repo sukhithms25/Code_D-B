@@ -45,6 +45,9 @@ router.post('/chat', aiControllers.chatController);
  */
 router.post('/generate-roadmap', aiControllers.generateRoadmapController);
 
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
+
 /**
  * @swagger
  * /api/v1/ai/analyze-resume:
@@ -57,7 +60,7 @@ router.post('/generate-roadmap', aiControllers.generateRoadmapController);
  *       200:
  *         description: Deep insights generated
  */
-router.post('/analyze-resume', aiControllers.analyzeResumeController);
+router.post('/analyze-resume', upload.single('resume'), aiControllers.analyzeResumeController);
 
 /**
  * @swagger

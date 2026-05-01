@@ -6,7 +6,13 @@ const AppError = require('../../utils/AppError');
 const ApiResponse = require('../../utils/ApiResponse');
 
 module.exports = catchAsync(async (req, res, next) => {
-  const { username } = req.body;
+  let username = req.body.username;
+
+  if (!username) {
+    const user = await User.findById(req.user._id);
+    username = user.leetcodeUsername;
+  }
+
   if (!username) {
     return next(new AppError('LeetCode username is required for sync', 400));
   }

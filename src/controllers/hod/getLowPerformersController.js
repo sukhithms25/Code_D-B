@@ -29,5 +29,5 @@ module.exports = catchAsync(async (req, res, next) => {
     .filter(s => s.totalScore < threshold)
     .sort((a, b) => a.totalScore - b.totalScore);
 
-  res.status(200).json(new ApiResponse(200, low, 'Low performers retrieved successfully'));
+  res.status(200).json(new ApiResponse(200, { students: low }, 'Low performers retrieved successfully'));
 });
